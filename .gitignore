@@ -1,0 +1,28 @@
+# ===== macOS (incl. external-drive resource forks) =====
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# ===== Env / secrets =====
+.env
+
+# ===== Editors =====
+.vscode/
+.idea/
+
+# ===== Claude (private — never commit) =====
+CLAUDE.md
+.claude/
