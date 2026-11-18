@@ -25,4 +25,6 @@ env/
 
 # ===== Claude (private — never commit) =====
 CLAUDE.md
-.claude/
+
+# ===== Scratch files =====
+engine_demo.py
