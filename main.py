@@ -73,6 +73,7 @@ def run_mode1() -> None:
 
 NORM_EXPECTED = {"x":"X", "+":"Cross"}
 NORM_VERDICT = {"a":"Cross", "b":"X", "tied":"UNDECIDED"}
+GRID_SIZES = [3, 5, 13, 25]
 def run_mode2() -> None:
     print_header("[1] 필터 로드")
     with open("data.json", encoding="utf-8") as f:
@@ -86,13 +87,17 @@ def run_mode2() -> None:
 
     print_header("[2] 패턴 분석 (라벨 정규화 적용)")
     patterns = data["patterns"]
+    total_test = total_passed = total_failed = 0
+    failed_cases = []
     for key, pattern in patterns.items():
-        print(f"--{pattern}--")
+        print(f"--{key}--")
         size_name = key.rsplit("_", 1)[0]
+        # TODO: size validation — per-case FAIL on shape mismatch (mission: never crash)
         score_a = mac(filters[size_name]["cross"], pattern["input"])
         score_b = mac(filters[size_name]["x"], pattern["input"])
         result = judge(score_a, score_b)
 
+        total_test += 1
         print(f"Cross 점수: {score_a}")
         print(f"X 점수: {score_b}")
         verdict = NORM_VERDICT[result]
@@ -100,16 +105,36 @@ def run_mode2() -> None:
         passed = verdict == expected
         if passed:
             label = "PASS"
+            total_passed += 1
         elif verdict == NORM_VERDICT["tied"]:
             label = "FAIL (epsilon 동점규칙)"
+            total_failed += 1
         else:
             label = "FAIL"
+            total_failed += 1
         print(f"판정: {verdict} | expected: {expected} | {label}")
 
-
     print_header(f"[3] 성능 분석 (평균/{REPS}회)")
+    print(f"{' 크기':<6}  {'평균시간(ms)':^14}  {'연산횟수':>4}")
+    print(MARGIN)
+    for n in GRID_SIZES:
+        grid = make_grid(n)
+        benchmark = benchmark_mac(grid, grid, REPS)
+        print(f"{n:>2}x{n:<6} {benchmark:^12.6f}  {n*n:>8}")
+    print()
 
-    
+    print_header(f"[4] 결과 요약")
+    print(f"총 테스트: {total_test}개")
+    print(f"통과:     {total_passed}개")
+    print(f"실패:     {total_failed}개")
+    print()
+    print("실패 케이스:")
+    for case in failed_cases:
+        print(f"- {case}")
+
+def make_grid(n: int) -> list[list[float]]:
+    return [[1.0 for _ in range(n)] for _ in range(n)]
+
 
 
 
@@ -121,3 +146,4 @@ if __name__ == "__main__":
 
     # run_mode1()
     run_mode2()
+    #make_grid(5)
