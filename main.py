@@ -157,15 +157,15 @@ def run_mode2(path: str = "data.json") -> None:
         print()
 
     print_header(f"[3] 성능 분석 (평균/{REPS}회)")
-    print(f"{' 크기':<2}  {'평균시간(ms)':^10} {'1D평균(ms)':^9}  {'속도향상':^5}  {'연산횟수':>4}")
+    print(f"{'size':<6}{'2D (ms)':>12}{'1D (ms)':>12}{'speedup':>10}{'ops N^2':>10}")
     print(MARGIN)
     for n in GRID_SIZES:
         grid = make_grid(n)
-        benchmark = benchmark_mac(grid, grid, REPS)
-        flat_grid = flatten(grid)
-        flat_benchmark = benchmark_flat_mac(flat_grid, flat_grid, REPS)
-        print(f"{n:>2}x{n:<4} {benchmark:<.6f} {flat_benchmark:>10.6f} "
-              f"  +{(benchmark - flat_benchmark) / benchmark * 100:.1f}% {n*n:>8}")
+        t_2d = benchmark_mac(grid, grid, REPS)
+        flat = flatten(grid)
+        t_1d = benchmark_flat_mac(flat, flat, REPS)
+        sp = f"{(t_2d - t_1d) / t_2d * 100:+.1f}%"
+        print(f"{f'{n}x{n}':<6}{t_2d:>12.6f}{t_1d:>12.6f}{sp:>10}{n*n:>10}")
     print()
 
     print_header(f"[4] 결과 요약")
