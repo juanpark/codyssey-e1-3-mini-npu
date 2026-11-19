@@ -74,9 +74,9 @@ def run_mode1() -> None:
 NORM_EXPECTED = {"x":"X", "+":"Cross"}
 NORM_VERDICT = {"a":"Cross", "b":"X", "tied":"UNDECIDED"}
 GRID_SIZES = [3, 5, 13, 25]
-def run_mode2() -> None:
+def run_mode2(path: str = "data.json") -> None:
     print_header("[1] 필터 로드")
-    with open("data.json", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     filters = data["filters"]
@@ -90,28 +90,58 @@ def run_mode2() -> None:
     total_test = total_passed = total_failed = 0
     failed_cases = []
     for key, pattern in patterns.items():
-        print(f"--{key}--")
-        size_name = key.rsplit("_", 1)[0]
-        # TODO: size validation — per-case FAIL on shape mismatch (mission: never crash)
-        score_a = mac(filters[size_name]["cross"], pattern["input"])
-        score_b = mac(filters[size_name]["x"], pattern["input"])
-        result = judge(score_a, score_b)
-
         total_test += 1
-        print(f"Cross 점수: {score_a}")
-        print(f"X 점수: {score_b}")
-        verdict = NORM_VERDICT[result]
-        expected = NORM_EXPECTED[pattern["expected"]]
+        print(f"--{key}--")
+
+        try:
+            size_name = key.rsplit("_", 1)[0]
+
+            cross = filters[size_name]["cross"]
+            x = filters[size_name]["x"]
+            pattern_in = pattern["input"]
+
+            # size validation — per-case FAIL on shape mismatch (mission: never crash)
+            size = int(size_name.rsplit("_", 1)[1])
+            bad_shape = [name for name, g in {"cross": cross, "x": x, "input": pattern_in}.items() if
+                         not is_n_by_n(g, size)]
+
+            if bad_shape:
+                msg = f"{key}: 크기 불일치 ({', '.join(bad_shape)} != {size}x{size})"
+                print(msg)
+                failed_cases.append(msg)
+                total_failed += 1
+                continue
+
+            score_a = mac(cross, pattern_in)
+            score_b = mac(x, pattern_in)
+            result = judge(score_a, score_b)
+
+            print(f"Cross 점수: {score_a}")
+            print(f"X 점수: {score_b}")
+            verdict = NORM_VERDICT[result]
+            expected = NORM_EXPECTED[pattern["expected"]]
+
+        except (KeyError, ValueError, TypeError) as e:
+            msg = f"{key}: 데이터 오류 ({type(e).__name__})"
+            print(msg)
+            failed_cases.append(msg)
+            total_failed += 1
+            continue
+
+
         passed = verdict == expected
         if passed:
             label = "PASS"
             total_passed += 1
         elif verdict == NORM_VERDICT["tied"]:
             label = "FAIL (epsilon 동점규칙)"
+            failed_cases.append(f"{key}: 동점(UNDECIDED) 처리 규칙에 따른 FAIL")
             total_failed += 1
         else:
             label = "FAIL"
+            failed_cases.append(f"{key}: 판정: {verdict} | expected: {expected} | {label}")
             total_failed += 1
+
         print(f"판정: {verdict} | expected: {expected} | {label}")
 
     print_header(f"[3] 성능 분석 (평균/{REPS}회)")
@@ -135,6 +165,9 @@ def run_mode2() -> None:
 def make_grid(n: int) -> list[list[float]]:
     return [[1.0 for _ in range(n)] for _ in range(n)]
 
+def is_n_by_n(grid: list[list[float]], size: int) -> bool:
+    return len(grid) == size and all(len(row) == size for row in grid)
+
 
 
 
@@ -144,6 +177,8 @@ if __name__ == "__main__":
     # label: str = "Filter A"
     # print(read_grid(3, label))
 
+    # make_grid(5)
     # run_mode1()
     run_mode2()
-    #make_grid(5)
+    # run_mode2("data_expected_mod.json")
+    # run_mode2("data_error_mod.json")
