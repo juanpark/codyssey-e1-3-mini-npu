@@ -1,3 +1,4 @@
+import json
 from judge import judge
 from mac import mac
 from time import perf_counter
@@ -70,10 +71,53 @@ def run_mode1() -> None:
         print(f"연산 시간(평균/{REPS}회): {ms:.6f}ms")
     print(f"판정: {MODE1_VERDICT[result]}")
 
+NORM_EXPECTED = {"x":"X", "+":"Cross"}
+NORM_VERDICT = {"a":"Cross", "b":"X", "tied":"UNDECIDED"}
+def run_mode2() -> None:
+    print_header("[1] 필터 로드")
+    with open("data.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    filters = data["filters"]
+
+    for filter_size in filters:
+        print(f"✓ {filter_size} 필터 로드 완료 (Cross, X)")
+    print()
+
+    print_header("[2] 패턴 분석 (라벨 정규화 적용)")
+    patterns = data["patterns"]
+    for key, pattern in patterns.items():
+        print(f"--{pattern}--")
+        size_name = key.rsplit("_", 1)[0]
+        score_a = mac(filters[size_name]["cross"], pattern["input"])
+        score_b = mac(filters[size_name]["x"], pattern["input"])
+        result = judge(score_a, score_b)
+
+        print(f"Cross 점수: {score_a}")
+        print(f"X 점수: {score_b}")
+        verdict = NORM_VERDICT[result]
+        expected = NORM_EXPECTED[pattern["expected"]]
+        passed = verdict == expected
+        if passed:
+            label = "PASS"
+        elif verdict == NORM_VERDICT["tied"]:
+            label = "FAIL (epsilon 동점규칙)"
+        else:
+            label = "FAIL"
+        print(f"판정: {verdict} | expected: {expected} | {label}")
+
+
+    print_header(f"[3] 성능 분석 (평균/{REPS}회)")
+
+    
+
+
+
 if __name__ == "__main__":
     # print(read_row(3, "숫자 3개 입력하세요: "))
 
     # label: str = "Filter A"
     # print(read_grid(3, label))
 
-    run_mode1()
+    # run_mode1()
+    run_mode2()
