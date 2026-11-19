@@ -41,15 +41,18 @@ def run_mode1() -> None:
     print_header("[1] 필터 입력")
     print("필터 A (3줄 입력, 공백 구분)")
     filter_a = read_grid(3, "Filter A")
+    print("✓ 필터 A 저장 완료")
     print()
 
     print("필터 B (3줄 입력, 공백 구분)")
     filter_b = read_grid(3, "Filter B")
+    print("✓ 필터 B 저장 완료")
     print()
 
     print_header("[2] 패턴 입력")
     print("패턴 (3줄 입력, 공백 구분)")
     pattern = read_grid(3, "Pattern")
+    print("✓ 패턴 저장 완료")
     print()
 
     # Result section
@@ -169,6 +172,37 @@ def is_n_by_n(grid: list[list[float]], size: int) -> bool:
     return len(grid) == size and all(len(row) == size for row in grid)
 
 
+def _clear():
+    """Clear the screen so the next menu renders at the top."""
+    print("\033[H\033[J", end="")
+
+
+def main() -> None:
+    try:
+        while True:
+            print_header("Mini NPU Simulator")
+            print()
+            print("[모드 선택]")
+            print()
+            print("1. 사용자 입력 (3x3)")
+            print("2. data.json 분석")
+            print("0. 종료")
+            run = input("선택: ")
+
+            if run == "0":
+                print("프로그램을 종료합니다...")
+                return
+            elif run == "1":
+                run_mode1()
+            elif run == "2":
+                run_mode2()
+            else:
+                print("번호를 입력하세요.")
+                input("\n계속하려면 Enter을 누르세요...")
+                _clear()
+    except (KeyboardInterrupt, EOFError):
+        print("\n프로그램을 종료합니다...")
+
 
 
 if __name__ == "__main__":
@@ -179,6 +213,8 @@ if __name__ == "__main__":
 
     # make_grid(5)
     # run_mode1()
-    run_mode2()
+    # run_mode2()
     # run_mode2("data_expected_mod.json")
     # run_mode2("data_error_mod.json")
+    main()
+
