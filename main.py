@@ -1,6 +1,6 @@
 import json
 from judge import judge
-from mac import mac
+from mac import mac, mac_1d, flatten
 from time import perf_counter
 
 MARGIN = "=" * 50
@@ -34,6 +34,14 @@ def benchmark_mac(kernel: list[list[float]], pattern: list[list[float]], reps: i
     start = perf_counter()
     for _ in range(reps):
         mac(kernel, pattern)
+    end = perf_counter()
+    return ((end - start) / reps) * 1000
+
+def benchmark_flat_mac(grid1: list[float], grid2: list[float], reps: int) -> float:
+    """Return the average time per mac_1d() call, in milliseconds."""
+    start = perf_counter()
+    for _ in range(reps):
+        mac_1d(grid1, grid2)
     end = perf_counter()
     return ((end - start) / reps) * 1000
 
@@ -146,14 +154,18 @@ def run_mode2(path: str = "data.json") -> None:
             total_failed += 1
 
         print(f"판정: {verdict} | expected: {expected} | {label}")
+        print()
 
     print_header(f"[3] 성능 분석 (평균/{REPS}회)")
-    print(f"{' 크기':<6}  {'평균시간(ms)':^14}  {'연산횟수':>4}")
+    print(f"{' 크기':<2}  {'평균시간(ms)':^10} {'1D평균(ms)':^9}  {'속도향상':^5}  {'연산횟수':>4}")
     print(MARGIN)
     for n in GRID_SIZES:
         grid = make_grid(n)
         benchmark = benchmark_mac(grid, grid, REPS)
-        print(f"{n:>2}x{n:<6} {benchmark:^12.6f}  {n*n:>8}")
+        flat_grid = flatten(grid)
+        flat_benchmark = benchmark_flat_mac(flat_grid, flat_grid, REPS)
+        print(f"{n:>2}x{n:<4} {benchmark:<.6f} {flat_benchmark:>10.6f} "
+              f"  +{(benchmark - flat_benchmark) / benchmark * 100:.1f}% {n*n:>8}")
     print()
 
     print_header(f"[4] 결과 요약")
@@ -213,8 +225,8 @@ if __name__ == "__main__":
 
     # make_grid(5)
     # run_mode1()
-    # run_mode2()
+    run_mode2()
     # run_mode2("data_expected_mod.json")
     # run_mode2("data_error_mod.json")
-    main()
+    # main()
 
