@@ -5,7 +5,7 @@ from time import perf_counter
 
 MARGIN = "=" * 50
 MODE1_VERDICT = {"a":"A", "b":"B", "tied":"판정 불가 (|A - B| < 1e-9)"}
-REPS = 10_000
+REPS = 10_000   # 미션 "최소 10회"의 최솟값을 초과 — 서브-µs 연산은 소수 반복이면 노이즈라 정밀도 위해 상향
 
 def read_row(n: int, prompt: str) -> list[float]:
     while True:
@@ -129,11 +129,22 @@ def run_mode1() -> None:
 
 NORM_EXPECTED = {"x":"X", "+":"Cross"}
 NORM_VERDICT = {"a":"Cross", "b":"X", "tied":"UNDECIDED"}
+
+def to_label(verdict: str) -> str:      # judge 출력(a/b/tied) → 표준 라벨 정규화
+    return NORM_VERDICT[verdict]
+
+def expected_label(raw: str) -> str:    # json expected(+/x) → 표준 라벨 정규화
+    return NORM_EXPECTED[raw]
+
 GRID_SIZES = [3, 5, 13, 25]
 def run_mode2(path: str = "data.json") -> None:
     print_header("[1] 필터 로드")
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"data.json 로드 실패: {e}")
+        return
 
     filters = data["filters"]
 
@@ -174,8 +185,8 @@ def run_mode2(path: str = "data.json") -> None:
 
             print(f"Cross 점수: {score_a}")
             print(f"X 점수: {score_b}")
-            verdict = NORM_VERDICT[result]
-            expected = NORM_EXPECTED[pattern["expected"]]
+            verdict = to_label(result)
+            expected = expected_label(pattern["expected"])
 
         except (KeyError, ValueError, TypeError) as e:
             msg = f"{key}: 데이터 오류 ({type(e).__name__})"
