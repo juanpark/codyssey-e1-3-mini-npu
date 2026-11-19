@@ -1,18 +1,15 @@
 
-def mac(rows: int, columns: int) -> None:
-    n = rows
+def count_mac_ops(n: int) -> int:
     count = 0
-
-    for r in range(rows):
-        for c in range(columns):
+    for r in range(n):
+        for c in range(n):
             count += 1
-    print(f"{n}x{n} calculations: {count}")
+    return count
 
-if __name__ == '__main__':
-    mac(3,3)
-    mac(5,5)
-    mac(13,13)
-    mac(25,25)
+if __name__ == "__main__":
+    for n in (3, 5, 13, 25):
+        counted = count_mac_ops(n)
+        print(f"{n:>2}x{n:<2}  counted={counted:>3}  n*n={n*n:>3}  match={counted == n*n}")
 
 
 
