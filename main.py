@@ -45,23 +45,68 @@ def benchmark_flat_mac(grid1: list[float], grid2: list[float], reps: int) -> flo
     end = perf_counter()
     return ((end - start) / reps) * 1000
 
+def read_size() -> int:
+    while True:
+        number = input("그리드 크기 생성을 위해 3 ~ 25 사이 홀수만 입력하세요: ")
+        if not number.isdigit():
+            continue
+        number = int(number)
+        if 3 <= number <= 25 and number % 2 != 0:
+            return number
+        else:
+            continue
+
+def print_grid(grid: list[list[float]]) -> None:
+    for row in grid:
+        for col in row:
+            if col == 0:
+                print(" 0 ", end="")
+            else:
+                print(" 1 ", end="")
+        print()
+
 def run_mode1() -> None:
     print_header("[1] 필터 입력")
-    print("필터 A (3줄 입력, 공백 구분)")
-    filter_a = read_grid(3, "Filter A")
-    print("✓ 필터 A 저장 완료")
-    print()
+    print("[A] 직접 입력: ")
+    print("[B] 자동 생성: ")
+    while True:
+        branch = input("선택 (A/B): ").lower().strip()
+        if branch in ["a", "b"]:
+            break
 
-    print("필터 B (3줄 입력, 공백 구분)")
-    filter_b = read_grid(3, "Filter B")
-    print("✓ 필터 B 저장 완료")
-    print()
+    if branch == "a":
+        print("필터 A (3줄 입력, 공백 구분)")
+        filter_a = read_grid(3, "Filter A")
+        print("✓ 필터 A 저장 완료")
+        print()
 
-    print_header("[2] 패턴 입력")
-    print("패턴 (3줄 입력, 공백 구분)")
-    pattern = read_grid(3, "Pattern")
-    print("✓ 패턴 저장 완료")
-    print()
+        print("필터 B (3줄 입력, 공백 구분)")
+        filter_b = read_grid(3, "Filter B")
+        print("✓ 필터 B 저장 완료")
+        print()
+
+        print_header("[2] 패턴 입력")
+        print("패턴 (3줄 입력, 공백 구분)")
+        pattern = read_grid(3, "Pattern")
+        print("✓ 패턴 저장 완료")
+        print()
+
+    elif branch == "b":
+        n = read_size()
+        filter_a = make_cross(n)
+        filter_b = make_x(n)
+        print("필터 A (Cross):"); print_grid(filter_a)
+        print("필터 B (X):"); print_grid(filter_b)
+        print()
+        print("테스트 패턴을 선택하세요 — A: Cross, B: X")
+        while True:
+            label = input("선택 (A/B): ").lower().strip()
+            if label in ["a", "b"]:
+                break
+        if label == "a":
+            pattern = make_cross(n)
+        elif label == "b":
+            pattern = make_x(n)
 
     # Result section
     score_a = mac(filter_a, pattern)
@@ -180,6 +225,31 @@ def run_mode2(path: str = "data.json") -> None:
 def make_grid(n: int) -> list[list[float]]:
     return [[1.0 for _ in range(n)] for _ in range(n)]
 
+def make_cross(n: int) -> list[list[float]]:
+    mid = n // 2
+    grid = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            if i == mid or j == mid:
+                row.append(1.0)
+            else:
+                row.append(0.0)
+        grid.append(row)
+    return grid
+
+def make_x(n: int) -> list[list[float]]:
+    grid = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            if j == i or j == n - 1 - i:
+                row.append(1.0)
+            else:
+                row.append(0.0)
+        grid.append(row)
+    return grid
+
 def is_n_by_n(grid: list[list[float]], size: int) -> bool:
     return len(grid) == size and all(len(row) == size for row in grid)
 
@@ -196,7 +266,7 @@ def main() -> None:
             print()
             print("[모드 선택]")
             print()
-            print("1. 사용자 입력 (3x3)")
+            print("1. 사용자 입력 (3x3, 생성기)")
             print("2. data.json 분석")
             print("0. 종료")
             run = input("선택: ")
@@ -225,8 +295,8 @@ if __name__ == "__main__":
 
     # make_grid(5)
     # run_mode1()
-    run_mode2()
+    # run_mode2()
     # run_mode2("data_expected_mod.json")
     # run_mode2("data_error_mod.json")
-    # main()
+    main()
 
